@@ -1,0 +1,18 @@
+[tool.ruff]
+line-length = 100
+exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.black]
+line-length = 100
+extend-exclude = "/migrations/"
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = "migrations/"
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"

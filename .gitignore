@@ -1,0 +1,34 @@
+# Local-only Claude Code config, not shared via git
+CLAUDE.md
+.mcp.json
+HACKATHON_REQUIREMENTS.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Env
+.env
+.env.local
+
+# Django
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/model_cache/
+
+# Python venv used only for local scaffolding
+.venv/
+
+# OS
+.DS_Store
+
+# Playwright MCP local test artifacts
+.playwright-mcp/
