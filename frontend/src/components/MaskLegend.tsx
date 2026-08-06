@@ -1,12 +1,11 @@
 import { useI18n } from '../i18n/context'
 
-// Must match backend/predictions/services/prediction_service.py MASK_COLORS order.
+// Subset of backend/predictions/services/prediction_service.py MASK_COLORS —
+// only the classes relevant to the end user are shown (ships/look-alike/wakes
+// are model-internal detail, not surfaced in the UI).
 const LEGEND_ITEMS = [
   { color: 'rgb(30, 60, 114)', labelKey: 'classBackground' as const },
   { color: 'rgb(220, 38, 38)', labelKey: 'classOilSpill' as const },
-  { color: 'rgb(156, 163, 175)', labelKey: 'classShips' as const },
-  { color: 'rgb(234, 179, 8)', labelKey: 'classLookAlike' as const },
-  { color: 'rgb(124, 58, 237)', labelKey: 'classWakes' as const },
 ]
 
 export function MaskLegend() {

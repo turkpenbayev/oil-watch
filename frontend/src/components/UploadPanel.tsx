@@ -1,4 +1,5 @@
-import { useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
 import { useI18n } from '../i18n/context'
 
 interface UploadPanelProps {
@@ -11,51 +12,47 @@ export function UploadPanel({ onSubmit, isLoading, resetKey }: UploadPanelProps)
   const { t } = useI18n()
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const inputId = useId()
 
-  function handleFile(selected: File | null) {
+  const onDrop = useCallback((accepted: File[]) => {
+    const selected = accepted[0] ?? null
     setFile(selected)
     setPreviewUrl(selected ? URL.createObjectURL(selected) : null)
-  }
+  }, [])
 
-  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
-    event.preventDefault()
-    const dropped = event.dataTransfer.files[0]
-    if (dropped) handleFile(dropped)
-  }
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
+    multiple: false,
+  })
 
   useEffect(() => {
-    if (resetKey > 0) handleFile(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (resetKey > 0) {
+      setFile(null)
+      setPreviewUrl(null)
+    }
   }, [resetKey])
 
   return (
     <div className="flex flex-col gap-4">
-      <label
-        htmlFor={inputId}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-        className="relative flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02] p-6 text-center transition hover:border-blue-400/60 hover:bg-blue-500/5"
+      <div
+        {...getRootProps()}
+        className={`flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition ${
+          isDragActive
+            ? 'border-blue-400 bg-blue-500/10'
+            : 'border-white/15 bg-white/[0.02] hover:border-blue-400/60 hover:bg-blue-500/5'
+        }`}
       >
+        <input {...getInputProps()} />
+
         {previewUrl ? (
-          <img src={previewUrl} alt="Selected preview" className="max-h-48 rounded-lg object-contain" />
+          <img src={previewUrl} alt="Selected preview" className="max-h-40 rounded-lg object-contain" />
         ) : (
           <>
             <p className="font-medium text-slate-200">{t('dragDrop')}</p>
-            <p className="text-sm text-slate-500">{t('orClickToBrowse')}</p>
+            <p className="mt-1 text-sm text-slate-500">{t('orClickToBrowse')}</p>
           </>
         )}
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          className="absolute h-px w-px overflow-hidden opacity-0"
-          onChange={(e) => {
-            handleFile(e.target.files?.[0] ?? null)
-            e.target.value = ''
-          }}
-        />
-      </label>
+      </div>
 
       <button
         type="button"

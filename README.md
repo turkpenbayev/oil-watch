@@ -2,11 +2,23 @@
 
 Detects oil spills / oil-contaminated areas in **SAR (Synthetic Aperture Radar) satellite images** using a Hugging Face computer vision model, with a Django REST API backend and a React dashboard frontend.
 
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="OilWatch AI dashboard" width="90%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/sample-original.png" alt="Original Sentinel-1 SAR scene" width="40%" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/screenshots/sample-mask.png" alt="Predicted segmentation mask" width="40%" />
+</p>
+<p align="center"><sub>Left: raw Sentinel-1 SAR input (ESA, 28 June 2017) · Right: predicted segmentation mask (red = detected oil spill)</sub></p>
+
 ## What this MVP does
 
 - Upload an image (SAR satellite imagery — see [Test images](#test-images) below) through the dashboard.
-- The backend runs a 5-class semantic segmentation model (U-Net) to classify each pixel as `background`, `oil_spill`, `ships`, `look_alike`, or `wakes`.
+- The backend runs a 5-class semantic segmentation model (U-Net) to classify each pixel as `background`, `oil_spill`, `ships`, `look_alike`, or `wakes`. The dashboard's mask legend only surfaces `background`/`oil_spill` — the other three are model-internal detail, not user-facing signal.
 - The dashboard shows the original image, a color-coded segmentation mask, confidence, and the estimated oil-spill area, and keeps a history of past scans.
+- On first run (empty database), two real, verified SAR predictions are seeded automatically so the dashboard isn't empty — see [`seed_demo_data`](backend/predictions/management/commands/seed_demo_data.py).
 
 The current MVP analyzes manually uploaded images. Automated ingestion of a live satellite feed for continuous Caspian Sea monitoring is on the roadmap (see `tasks/roadmap.md`).
 
@@ -50,10 +62,12 @@ GET  /api/history/    # list of past predictions
 
 ## Test images
 
-The model is trained on **raw SAR radar imagery**, not ordinary optical photos — oil slicks appear as dark, textured patches rather than the bright/pale swirls seen in optical satellite photos (e.g. MODIS). It also expects an **unannotated grayscale radar scene**, not a rendered infographic/map (colored land/water composites, text labels, legends, arrows). We verified this empirically:
+The model is trained on **raw SAR radar imagery**, not ordinary optical photos — oil slicks appear as dark, textured patches rather than the bright/pale swirls seen in optical satellite photos (e.g. MODIS). It also expects an **unannotated grayscale radar scene**, not a rendered infographic/map (colored land/water composites, text labels, legends, arrows). We verified this empirically with two real spills, both auto-seeded into the database on first run (see above) and also available directly in `backend/predictions/fixtures/`:
 
-- `docs/sample-images/sentinel-1-oil-spill-esa-2017.png` — a real, raw Copernicus Sentinel-1 SAR image (28 June 2017), sourced from [ESA](https://www.esa.int/ESA_Multimedia/Images/2017/06/Oil_spill_detected_by_Sentinel-1) (ESA Standard Licence, contains modified Copernicus Sentinel data). Verified end-to-end against this project's API: correctly classified as `oil_spill`, with a small, plausible oil-spill area (~0.8% of the image) matching the visible dark streak in the scene.
-- A rendered infographic of the Balikpapan Bay spill (colored land/water, text labels) was **misclassified** (0% oil_spill, 53.8% falsely labeled `ships`) — the model does not generalize to annotated/composite imagery, only to raw radar scenes.
+- `sentinel-1-oil-spill-esa-2017.png` — a real, raw Copernicus Sentinel-1 SAR image (28 June 2017), sourced from [ESA](https://www.esa.int/ESA_Multimedia/Images/2017/06/Oil_spill_detected_by_Sentinel-1) (ESA Standard Licence, contains modified Copernicus Sentinel data). Correctly classified as `oil_spill`, ~0.8% oil-spill area matching the visible dark streak in the scene.
+- `terrasar-x-oil-spill-2010.jpg` — a real TerraSAR-X radar image of the Deepwater Horizon spill (Gulf of Mexico, 9 July 2010), sourced from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:TerraSAR-X_image_of_the_oil-polluted_area_in_the_Gulf_of_Mexico_in_a_series_of_images_acquired_on_9_July_2010.jpg) (CC BY 3.0, DLR). Correctly classified as `oil_spill`, ~1.8% oil-spill area.
+
+For contrast, a rendered infographic of the Balikpapan Bay spill (colored land/water, text labels) was **misclassified** (0% oil_spill, 53.8% falsely labeled `ships`) — the model does not generalize to annotated/composite imagery, only to raw radar scenes.
 
 Ordinary optical/aerial photos (regular camera or visible-light satellite photos) and pre-rendered maps/infographics are **not** representative inputs for this model. Use a raw, unannotated SAR scene for a meaningful demo.
 
