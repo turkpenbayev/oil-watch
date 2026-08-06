@@ -50,11 +50,12 @@ GET  /api/history/    # list of past predictions
 
 ## Test images
 
-The model is trained on **SAR radar imagery**, not ordinary optical photos — oil slicks appear as dark, textured patches rather than the bright/pale swirls seen in optical satellite photos (e.g. MODIS). For a meaningful demo, use a real SAR oil-spill image:
+The model is trained on **raw SAR radar imagery**, not ordinary optical photos — oil slicks appear as dark, textured patches rather than the bright/pale swirls seen in optical satellite photos (e.g. MODIS). It also expects an **unannotated grayscale radar scene**, not a rendered infographic/map (colored land/water composites, text labels, legends, arrows). We verified this empirically:
 
-- `docs/sample-images/sar-oil-spill-gulf-of-mexico.jpg` — a real TerraSAR-X radar image of the Deepwater Horizon spill (Gulf of Mexico, 9 July 2010), sourced from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:TerraSAR-X_image_of_the_oil-polluted_area_in_the_Gulf_of_Mexico_in_a_series_of_images_acquired_on_9_July_2010.jpg) (CC BY 3.0, DLR). Verified end-to-end against this project's API — it is correctly classified as `oil_spill`.
+- `docs/sample-images/sentinel-1-oil-spill-esa-2017.png` — a real, raw Copernicus Sentinel-1 SAR image (28 June 2017), sourced from [ESA](https://www.esa.int/ESA_Multimedia/Images/2017/06/Oil_spill_detected_by_Sentinel-1) (ESA Standard Licence, contains modified Copernicus Sentinel data). Verified end-to-end against this project's API: correctly classified as `oil_spill`, with a small, plausible oil-spill area (~0.8% of the image) matching the visible dark streak in the scene.
+- A rendered infographic of the Balikpapan Bay spill (colored land/water, text labels) was **misclassified** (0% oil_spill, 53.8% falsely labeled `ships`) — the model does not generalize to annotated/composite imagery, only to raw radar scenes.
 
-Ordinary optical/aerial photos (regular camera or visible-light satellite photos) are not representative inputs for this model and will generally be classified as clean, since the model has never seen that visual domain.
+Ordinary optical/aerial photos (regular camera or visible-light satellite photos) and pre-rendered maps/infographics are **not** representative inputs for this model. Use a raw, unannotated SAR scene for a meaningful demo.
 
 ## Project structure
 
@@ -76,3 +77,17 @@ tasks/               # roadmap/backlog/todo/done (in Russian — project task tr
 
 - Source: [sahilvishwa2108/oil-spill-unet](https://huggingface.co/sahilvishwa2108/oil-spill-unet) (U-Net, 5-class segmentation)
 - The model is abstracted behind `PredictionService`/`OilSpillModel` (`backend/predictions/services/`) so it can be swapped without touching API or business logic.
+- The model card does not name its training dataset. Based on the class set (`background, oil_spill, ships, look_alike, wakes`) and its empirically confirmed accuracy on raw Sentinel-1 scenes, it was most likely trained on a Sentinel-1 SAR oil-spill dataset (e.g. the public "M4D"/Kaggle-style 5-class SAR datasets) — this is an informed guess, not a documented fact, and is worth re-verifying if this model is used beyond the MVP.
+
+## Why SAR, not ordinary satellite photos?
+
+"Satellite image" usually means an ordinary optical photo (visible light, like Google Maps or a phone camera from orbit — e.g. Sentinel-2, Landsat, MODIS). **SAR (Synthetic Aperture Radar)** is a different kind of satellite sensor: it actively sends radar pulses and measures what bounces back, rather than passively capturing light. That distinction is why this model requires SAR input specifically, not any "satellite image":
+
+| | SAR (radar) | Optical (visible light) |
+|---|---|---|
+| How oil is detected | Physics-based: a smooth oil film dampens radar backscatter, showing up as a dark patch — reliable, hard to fake | Appearance-based: color/brightness/spectral differences — oil can look like sun glint, algae, or clean water depending on lighting |
+| Weather / day-night | Works through clouds, at night, in any weather | Needs clear skies and daylight |
+| Data cost | Sentinel-1 (ESA/Copernicus) is free and open | Sentinel-2/Landsat (ESA/NASA) are also free; higher-resolution commercial imagery (Planet, Maxar) costs money per km² |
+| Ease of use | Grayscale, textured, harder to read by eye; more false positives from look-alikes (algae, calm-wind slicks, biogenic films) | Intuitive to interpret visually; easier to label training data |
+
+For continuous real-world monitoring (the Caspian Sea roadmap item), SAR is generally the better fit precisely because it doesn't depend on weather or daylight — an oil spill doesn't wait for clear skies. Models for optical imagery also exist (typically CNN classifiers/segmenters on Sentinel-2 or commercial RGB imagery), but none of comparable quality were found packaged on Hugging Face during this project's research (see `tasks/done.md` for the survey).

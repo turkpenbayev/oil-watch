@@ -35,7 +35,7 @@ export function UploadPanel({ onSubmit, isLoading, resetKey }: UploadPanelProps)
         htmlFor={inputId}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
-        className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02] p-6 text-center transition hover:border-blue-400/60 hover:bg-blue-500/5"
+        className="relative flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02] p-6 text-center transition hover:border-blue-400/60 hover:bg-blue-500/5"
       >
         {previewUrl ? (
           <img src={previewUrl} alt="Selected preview" className="max-h-48 rounded-lg object-contain" />

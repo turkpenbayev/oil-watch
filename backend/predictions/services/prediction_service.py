@@ -1,8 +1,8 @@
 import io
 
 import numpy as np
+from django.core.files import File
 from django.core.files.base import ContentFile
-from django.core.files.uploadedfile import UploadedFile
 from PIL import Image
 
 from predictions.models import Prediction
@@ -32,7 +32,7 @@ class PredictionService:
     def __init__(self, model: OilSpillModel | None = None) -> None:
         self._model = model or HuggingFaceOilSpillModel()
 
-    def predict(self, uploaded_image: UploadedFile) -> Prediction:
+    def predict(self, uploaded_image: File) -> Prediction:
         image = Image.open(uploaded_image)
         image.load()
 
