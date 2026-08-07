@@ -19,7 +19,7 @@ class PredictView(APIView):
         prediction = PredictionService().predict(serializer.validated_data["image"])
 
         return Response(
-            PredictionSerializer(prediction, context={"request": request}).data,
+            PredictionSerializer(prediction).data,
             status=status.HTTP_201_CREATED,
         )
 

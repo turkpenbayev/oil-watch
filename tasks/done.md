@@ -36,3 +36,8 @@
 - Легенда маски упрощена по просьбе пользователя: показывает только `Background`/`Oil spill` вместо всех 5 классов — `ships`/`look_alike`/`wakes` остаются внутренней деталью модели, не нужны пользователю в UI
 - Seed расширен до 2 реальных проверенных изображений (ESA Sentinel-1 2017 + TerraSAR-X Deepwater Horizon 2010) — оба честно верифицированы ранее, `seed_demo_data` теперь прогоняет оба на чистом старте
 - README дополнен: скриншот дашборда и пара original/mask изображений вверху, обновлённый раздел Test images с обоими seed-примерами и прямыми ссылками на источники
+- **Добавлен nginx как единая точка входа** (порт 80): раздаёт собранный production build фронтенда (`npm run build`, без hot reload — пересборка при `docker compose up --build`), проксирует `/api/` и `/admin/` на gunicorn (backend), отдаёт `/media/` и `/static/` напрямую из shared volume, минуя Django. В будущем достаточно указать IP сервера без портов
+  - `frontend` теперь build-only контейнер (собирает `dist/` в volume и завершается), не постоянный dev-сервер
+  - Фронтенд переведён на относительные пути API (`baseURL: '/api'` вместо `VITE_API_URL`) — работает на любом хосте/IP без пересборки под конкретный адрес
+  - Backend: убран `django-cors-headers` (CORS больше не нужен — всё same-origin через nginx), `ALLOWED_HOSTS` теперь `*` по умолчанию (управляется через `.env` в проде)
+  - Проверено на полностью чистом старте (`down -v && up --build`): статика, API, media, drag-and-drop upload, полный цикл predict — всё работает через `http://localhost/` без портов

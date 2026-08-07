@@ -43,15 +43,16 @@ cp .env.example .env
 docker compose up --build
 ```
 
-This starts three services:
+nginx is the single entry point (port 80) in front of the frontend build, the backend API, and media/static files — everything is reachable through one origin, so on a real server just point a browser at the server's IP with no port needed:
 
-| Service | URL |
+| What | URL |
 |---|---|
-| Frontend dashboard | http://localhost:5173 |
-| Backend API | http://localhost:8000/api/ |
-| API docs (Swagger) | http://localhost:8000/api/docs/ |
+| Dashboard | http://localhost/ |
+| Backend API | http://localhost/api/ |
+| API docs (Swagger) | http://localhost/api/docs/ |
+| Django admin | http://localhost/admin/ |
 
-Migrations run automatically on backend startup. No manual database setup or superuser is required for the core flow (upload → predict → history).
+Migrations run automatically on backend startup. No manual database setup or superuser is required for the core flow (upload → predict → history). The frontend is built once at `docker compose up --build` time (no hot reload) and served as static files by nginx — re-run `--build` after frontend changes.
 
 ## API endpoints
 
@@ -84,6 +85,8 @@ frontend/
   src/
     components/      # UploadPanel, ResultCard, HistoryList, dashboard widgets
     services/        # API client
+docker/
+  nginx/             # nginx config: reverse proxy + static frontend + media/static file serving
 tasks/               # roadmap/backlog/todo/done (in Russian — project task tracking)
 ```
 

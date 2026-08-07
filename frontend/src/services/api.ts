@@ -1,9 +1,7 @@
 import axios from 'axios'
 import type { Prediction } from '../types/prediction'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-
-const client = axios.create({ baseURL: `${API_URL}/api` })
+const client = axios.create({ baseURL: '/api' })
 
 export async function predictImage(file: File): Promise<Prediction> {
   const formData = new FormData()
@@ -20,6 +18,5 @@ export async function fetchHistory(): Promise<Prediction[]> {
 }
 
 export function resolveMediaUrl(path: string): string {
-  if (path.startsWith('http')) return path
-  return `${API_URL}${path}`
+  return path.startsWith('http') ? new URL(path).pathname : path
 }

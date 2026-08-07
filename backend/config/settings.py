@@ -24,7 +24,10 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-dev-key-change
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# nginx is the single entry point in front of backend/frontend, so
+# ALLOWED_HOSTS covers "whatever host nginx forwards" — restrict via
+# DJANGO_ALLOWED_HOSTS in production if the server has a fixed IP/domain.
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 
 # Application definition
@@ -38,13 +41,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
-    "corsheaders",
     "predictions",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -52,8 +53,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 ROOT_URLCONF = "config.urls"
 
