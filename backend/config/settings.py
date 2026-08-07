@@ -134,8 +134,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# The API is public and stateless (no user login), so it has no session to
+# forge a CSRF attack against. DRF's default SessionAuthentication otherwise
+# enforces CSRF on POST even without a logged-in user. Django admin keeps its
+# own session-based CSRF protection independently of this setting.
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
 }
 
 SPECTACULAR_SETTINGS = {
