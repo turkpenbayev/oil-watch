@@ -52,7 +52,7 @@ nginx is the single entry point (port 80) in front of the frontend build, the ba
 | API docs (Swagger) | http://localhost/api/docs/ |
 | Django admin | http://localhost/admin/ |
 
-Migrations run automatically on backend startup. No manual database setup or superuser is required for the core flow (upload → predict → history). The frontend is built once at `docker compose up --build` time (no hot reload) and served as static files by nginx — re-run `--build` after frontend changes.
+Migrations run automatically on backend startup, and a Django admin superuser is created automatically from `DJANGO_SUPERUSER_*` in `.env` (default: `admin` / `admin` — change this before deploying beyond the hackathon demo). No manual database setup is required for the core flow (upload → predict → history). The frontend is built once at `docker compose up --build` time (no hot reload) and served as static files by nginx — re-run `--build` after frontend changes.
 
 ## API endpoints
 
